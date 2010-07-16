@@ -1,0 +1,34 @@
+<lift:surround with="login_tmpl" at="content">
+    <head>
+        <title>ログイン</title>
+    </head>
+    <h1>ログイン</h1>
+        <hr/>
+        <div align="center">
+            <table border="0">
+                    <lift:TodoWebapp.loginAction form="POST">
+                        <tr>
+                            <th class="login_field">
+                                ユーザID
+                            </th>
+                            <td class="login_field">
+                                <e:userId/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="login_field">
+                                パスワード
+                            </th>
+                            <td class="login_field">
+                                <e:password/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="login_button">
+                                <e:submit/>
+                            </td>
+                        </tr>
+                    </lift:TodoWebapp.loginAction>
+            </table>
+        </div>
+</lift:surround>

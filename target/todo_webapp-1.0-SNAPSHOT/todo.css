@@ -1,0 +1,11 @@
+h1{font-size:32px;margin:0;padding:4px;color:#228;}
+hr{margin-top:8px;margin-bottom:8px;}
+th.login_field{width:150px;text-align:left;padding:8px;color:#fff;background-color:#aaf;}
+td.login_field{padding:8px;}
+td.login_button{text-align:center;padding:8px;}
+table.toolbar{margin-top:16px;margin-bottom:32px;}
+table.list th{width:150px;text-align:left;padding:8px;color:#fff;text-align:center;background-color:#55a;}
+table.list td{background-color:#bbf;padding:8px;}
+th.add_field{width:150px;text-align:left;padding:8px;color:#fff;background-color:#aaf;}
+td.add_field{padding:8px;}
+td.add_button{text-align:center;padding:8px;}
