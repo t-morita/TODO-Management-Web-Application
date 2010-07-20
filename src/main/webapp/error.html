@@ -1,0 +1,21 @@
+<lift:surround with="default" at="content">
+    <h1>エラー</h1>
+    <hr/>
+    <div align="center">
+        <table border="0">
+            <lift:TodoWebapp.errorAction form="POST">
+                <tr>
+                    <td class="add_field">
+                        エラーが発生しました。<br/>
+                        内容: <e:error/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="add_button">
+                        <e:return/>
+                    </td>
+                </tr>
+            </lift:TodoWebapp.errorAction>
+        </table>
+    </div>
+</lift:surround>

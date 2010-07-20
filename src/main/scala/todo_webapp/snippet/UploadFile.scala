@@ -1,6 +1,7 @@
 package todo_webapp.snippet
 
 import xml.NodeSeq
+
 import net.liftweb.http._
 import net.liftweb.util.Helpers._
 import net.liftweb.common._

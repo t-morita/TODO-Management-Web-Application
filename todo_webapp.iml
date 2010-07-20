@@ -6,12 +6,12 @@
         <option name="takeFromSettings" value="true" />
         <option name="myScalaCompilerJarPaths">
           <array>
-            <option value="$MAVEN_REPOSITORY$/org/scala-lang/scala-compiler/2.7.3/scala-compiler-2.7.3.jar" />
+            <option value="$MAVEN_REPOSITORY$/org/scala-lang/scala-compiler/2.7.7/scala-compiler-2.7.7.jar" />
           </array>
         </option>
         <option name="myScalaSdkJarPaths">
           <array>
-            <option value="$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.7.3/scala-library-2.7.3.jar" />
+            <option value="$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.7.7/scala-library-2.7.7.jar" />
           </array>
         </option>
       </configuration>
@@ -29,7 +29,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="Maven: org.scala-lang:scala-library:2.7.3" level="project" />
+    <orderEntry type="library" exported="" name="Maven: com.h2database:h2:1.2.139" level="project" />
+    <orderEntry type="library" exported="" name="Maven: org.scala-lang:scala-library:2.7.7" level="project" />
     <orderEntry type="library" exported="" name="Maven: net.liftweb:lift-webkit:2.0" level="project" />
     <orderEntry type="library" exported="" name="Maven: net.liftweb:lift-util:2.0" level="project" />
     <orderEntry type="library" exported="" name="Maven: net.liftweb:lift-actor:2.0" level="project" />
@@ -52,7 +53,7 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.mortbay.jetty:jetty:6.1.24" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mortbay.jetty:jetty-util:6.1.24" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mortbay.jetty:servlet-api:2.5-20081211" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.scala-lang:scala-compiler:2.7.3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.scala-lang:scala-compiler:2.7.7" level="project" />
   </component>
 </module>
 

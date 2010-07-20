@@ -1,0 +1,56 @@
+<lift:surround with="default" at="content">
+  <h1>
+    作業登録
+  </h1>
+  <hr/>
+  <div align="center">
+    <lift:TodoWebapp.addAction form="POST">
+      <table border="0">
+        <tr>
+          <th class="add_field">
+            項目名
+          </th>
+          <td class="add_field">
+            <e:name/>
+          </td>
+        </tr>
+        <tr>
+          <th class="add_field">
+            担当者
+          </th>
+          <td class="add_field">
+            <e:personInCharge/>            
+          </td>
+        </tr>
+        <tr>
+          <th class="add_field">
+            期限
+          </th>
+          <td class="add_field">
+            <e:year/>
+            /
+            <e:month/>
+            /
+            <e:day/>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" class="add_button">
+            <table border="0">
+              <tr>
+                <td>
+                  <e:submit/>
+                </td>
+                <td>
+                  <lift:TodoWebapp.listAction form="POST">
+                    <e:cancel/>
+                  </lift:TodoWebapp.listAction>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </lift:TodoWebapp.addAction>
+  </div>
+</lift:surround>
