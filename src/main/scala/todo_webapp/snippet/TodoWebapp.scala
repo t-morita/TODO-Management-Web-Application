@@ -25,23 +25,31 @@ class TodoWebapp {
     def errorMessage(xhtml: NodeSeq): NodeSeq = {
             <p>Error</p>
     }
-    
-    def list(): NodeSeq = {
-        val itemList = getItemList()
-        var itemTable = new Queue[Node]
-        for (item <- itemList) {
-          var css = ""
-            var finished = "未"
-            var isFinished = "false"
+
+    def searchResults(): NodeSeq = {
+      val keyword = S.get("keyword").openOr("")
+      val itemList = getSearchItemList(keyword)
+        getItemTable(itemList)
+    }
+
+   def getItemTable(itemList: List[Item]): NodeSeq = {
+       var itemTable = new Queue[Node]
+       if (itemList.size == 0) {
+           return <p>作業項目はありません。</p>
+       }
+       for (item <- itemList) {
+           var css = ""
+           var finished = "未"
+           var isFinished = "false"
            if (item.finishedDate != null)  {
                css = "background-color: #cccccc;"
                finished = item.finishedDate.toString
                isFinished = "true"
            } else  if (currentUser.is == item.user && item.expireDate.getTime >= Calendar.getInstance().getTimeInMillis) {
-                css="background-color: #ffbbbb;"
-            } else if (currentUser.is == item.user && item.expireDate.getTime < Calendar.getInstance().getTimeInMillis) {
-                css="background-color: #ffbbbb; color: #ff0000;"
-            } else if (item.expireDate.getTime < Calendar.getInstance().getTimeInMillis) {
+               css="background-color: #ffbbbb;"
+           } else if (currentUser.is == item.user && item.expireDate.getTime < Calendar.getInstance().getTimeInMillis) {
+               css="background-color: #ffbbbb; color: #ff0000;"
+           } else if (item.expireDate.getTime < Calendar.getInstance().getTimeInMillis) {
                css="color: #ff0000;"
            }
            itemTable += <tr><td style={css}>{item.name}</td><td style={css}>{item.user.name}</td>
@@ -54,21 +62,25 @@ class TodoWebapp {
                </td>
                <td style={css}>
                    <lift:TodoWebapp.editPageAction form="POST" item_id={item.id}>
-                      <e:itemId/>
-                      <e:editTodo/>
+                           <e:itemId/>
+                           <e:editTodo/>
                    </lift:TodoWebapp.editPageAction>
                </td>
                <td style={css}>
                    <lift:TodoWebapp.deletePageAction form="POST" item_id={item.id}>
-                       <e:itemId/>
-                       <e:deleteTodo/>
+                           <e:itemId/>
+                           <e:deleteTodo/>
                    </lift:TodoWebapp.deletePageAction>
                </td>
            </tr>
-        }
-        itemTable
-    }
+       }
+       itemTable
+   }
 
+    def list(): NodeSeq = {
+        val itemList = getItemList()
+        getItemTable(itemList)
+    }
 
     def errorAction(xhtml: NodeSeq):  NodeSeq = {
 
@@ -258,8 +270,7 @@ class TodoWebapp {
     def searchPageAction(xhtml: NodeSeq):  NodeSeq = {
         var keyword = ""
         def redirectSearchPage() {
-            println(keyword)
-            // keywordを保存してリダイレクト
+            S.set("keyword", keyword)
             S.redirectTo("search")
         }
         bind("e", xhtml,
@@ -305,11 +316,19 @@ class TodoWebapp {
         }
        S.notice(currentUser.is.toString)
         S.notice("listAction")
-      bind("e", xhtml, "cancel" --> SHtml.submit("キャンセル", cancel))
+      bind("e", xhtml, "cancel" --> SHtml.submit("戻る", cancel))
     }
 
-    object currentUser extends SessionVar[User](null)
-    
+   object currentUser extends SessionVar[User](null)
+   
+   def getSearchItemList(keyword: String) : List[Item] = {
+       val itemDB = new ItemDB()
+       itemDB.create
+       val itemList = itemDB.searchItems(keyword)
+       itemDB.close
+       itemList
+   }
+
    def getItemList() : List[Item] = {
        val itemDB = new ItemDB()
        itemDB.create
