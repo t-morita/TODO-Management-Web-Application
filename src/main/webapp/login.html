@@ -1,34 +1,35 @@
-<lift:surround with="login_tmpl" at="content">
+<lift:surround with="default" at="content">
     <head>
         <title>ログイン</title>
     </head>
     <h1>ログイン</h1>
-        <hr/>
+    <hr/>
+    <lift:TodoWebapp.loginAction form="POST">
         <div align="center">
+            <div id="message"/>
             <table border="0">
-                    <lift:TodoWebapp.loginAction form="POST">
-                        <tr>
-                            <th class="login_field">
-                                ユーザID
-                            </th>
-                            <td class="login_field">
-                                <e:userId/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th class="login_field">
-                                パスワード
-                            </th>
-                            <td class="login_field">
-                                <e:password/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" class="login_button">
-                                <e:submit/>
-                            </td>
-                        </tr>
-                    </lift:TodoWebapp.loginAction>
+                <tr>
+                    <th class="login_field">
+                        ユーザID
+                    </th>
+                    <td class="login_field">
+                        <e:userId/><span id="check_user_id_msg"/>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="login_field">
+                        パスワード
+                    </th>
+                    <td class="login_field">
+                        <e:password/><span id="check_password_msg"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="login_button">
+                        <e:submit/>
+                    </td>
+                </tr>
             </table>
         </div>
+    </lift:TodoWebapp.loginAction>
 </lift:surround>

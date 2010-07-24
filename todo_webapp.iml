@@ -30,6 +30,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="Maven: com.h2database:h2:1.2.139" level="project" />
+    <orderEntry type="library" exported="" name="Maven: mysql:mysql-connector-java:5.0.8" level="project" />
     <orderEntry type="library" exported="" name="Maven: org.scala-lang:scala-library:2.7.7" level="project" />
     <orderEntry type="library" exported="" name="Maven: net.liftweb:lift-webkit:2.0" level="project" />
     <orderEntry type="library" exported="" name="Maven: net.liftweb:lift-util:2.0" level="project" />
@@ -48,6 +49,8 @@
     <orderEntry type="library" exported="" scope="RUNTIME" name="Maven: commons-httpclient:commons-httpclient:3.1" level="project" />
     <orderEntry type="library" exported="" scope="RUNTIME" name="Maven: commons-logging:commons-logging:1.0.4" level="project" />
     <orderEntry type="library" exported="" name="Maven: commons-fileupload:commons-fileupload:1.2.1" level="project" />
+    <orderEntry type="library" exported="" name="Maven: net.liftweb:lift-mapper:2.0" level="project" />
+    <orderEntry type="library" exported="" scope="RUNTIME" name="Maven: org.apache.derby:derby:10.5.3.0_1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.servlet:servlet-api:2.5" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:3.8.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mortbay.jetty:jetty:6.1.24" level="project" />

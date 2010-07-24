@@ -1,3 +1,10 @@
 <lift:surround with="default" at="content">
-		<h2>Welcome to your project!</h2>
+    <h2>welcome to your project!</h2>
+    <div id="message" />
+    <lift:TodoWebapp.ajaxTest form="POST">
+        <e:input/><span id="check_user_id_msg"/><br/>
+        <e:password/><span id="check_password_msg"/><br/>
+        <e:button/>
+    </lift:TodoWebapp.ajaxTest>
 </lift:surround>
+        
