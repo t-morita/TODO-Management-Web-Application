@@ -47,7 +47,6 @@ table.list th {
 }
 
 table.list td {
-    background-color: #bbbbff;
     padding: 8px;
 }
 
@@ -69,3 +68,7 @@ td.add_button {
     padding: 8px;
 }
 
+.tbl_sty1 {background-color: #cccccc;}
+.tbl_sty2 {background-color: #ffbbbb;}
+.tbl_sty3 {background-color: #ffbbbb; color: #ff0000;}
+.tbl_sty4 {background-color: #bbbbff; color: #ff0000;}

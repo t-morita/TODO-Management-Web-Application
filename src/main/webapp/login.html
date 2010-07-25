@@ -8,12 +8,13 @@
         <div align="center">
             <div id="message"/>
             <table border="0">
+                <tbody>
                 <tr>
                     <th class="login_field">
                         ユーザID
                     </th>
                     <td class="login_field">
-                        <e:userId/><span id="check_user_id_msg"/>
+                        <e:userId/>
                     </td>
                 </tr>
                 <tr>
@@ -21,7 +22,7 @@
                         パスワード
                     </th>
                     <td class="login_field">
-                        <e:password/><span id="check_password_msg"/>
+                        <e:password/>
                     </td>
                 </tr>
                 <tr>
@@ -29,6 +30,15 @@
                         <e:submit/>
                     </td>
                 </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <td>
+                        <div id="check_user_id_msg"/>
+                        <div id="check_password_msg"/>
+                    </td>
+                </tr>
+                </tfoot>
             </table>
         </div>
     </lift:TodoWebapp.loginAction>

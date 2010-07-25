@@ -8,6 +8,9 @@
     <hr/>
     <div align="right">
         ようこそ <lift:TodoWebapp.getUserName/> さん
+        <lift:TodoWebapp.logoutAction form="POST">
+            <e:logoutButton/>
+        </lift:TodoWebapp.logoutAction>
     </div>
     <!-- 作業登録・検索 -->
     <table border="0" width="90%" class="toolbar">

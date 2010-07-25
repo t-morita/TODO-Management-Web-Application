@@ -24,11 +24,11 @@ import java.text.SimpleDateFormat
 class TodoWebapp {
 
     def getUserName(): NodeSeq = {
+        if (currentUser.is == null)  {
+            S.set("error_message", "ログインしていません．")
+            S.redirectTo("error")
+        }
         <span>{currentUser.is.name}</span>
-    }
-
-    def errorMessage(xhtml: NodeSeq): NodeSeq = {
-        <p>Error</p>
     }
 
     def getItemTable(itemList: List[TodoItem]): NodeSeq = {
@@ -45,32 +45,32 @@ class TodoWebapp {
             val deadline: Date = item.deadline
             val user = getUserById(item.userId).get
             if (item.finishedDate != null)  {
-                css = "background-color: #cccccc;"
+                css = "tbl_sty1"
                 val finishedDate: Date = item.finishedDate
                 finished = sdf1.format(finishedDate)
                 isFinished = "true"
             } else  if (currentUser.is == user && item.deadline.getTime >= Calendar.getInstance().getTimeInMillis) {
-                css="background-color: #ffbbbb;"
+                css = "tbl_sty2"
             } else if (currentUser.is == user && item.deadline.getTime < Calendar.getInstance().getTimeInMillis) {
-                css="background-color: #ffbbbb; color: #ff0000;"
+                css = "tbl_sty3"
             } else if (item.deadline.getTime < Calendar.getInstance().getTimeInMillis) {
-                css="color: #ff0000;"
+                css = "tbl_sty4"
             }
-            itemTable += <tr><td style={css}>{item.name}</td><td style={css}>{user.name}</td>
-                <td style={css}>{sdf1.format(deadline)}</td>
-                <td style={css}>{finished}</td>
-                <td style={css}>
+            itemTable += <tr><td class={css}>{item.name}</td><td class={css}>{user.name}</td>
+                <td class={css}>{sdf1.format(deadline)}</td>
+                <td class={css}>{finished}</td>
+                <td class={css}>
                     <lift:TodoWebapp.toggleFinishedAction form="POST" item_id={itemId} isFinished={isFinished}>
                             <e:isFinished/>
                     </lift:TodoWebapp.toggleFinishedAction>
                 </td>
-                <td style={css}>
+                <td class={css}>
                     <lift:TodoWebapp.editPageAction form="POST" item_id={itemId}>
                             <e:itemId/>
                             <e:editTodo/>
                     </lift:TodoWebapp.editPageAction>
                 </td>
-                <td style={css}>
+                <td class={css}>
                     <lift:TodoWebapp.deletePageAction form="POST" item_id={itemId}>
                             <e:itemId/>
                             <e:deleteTodo/>
@@ -82,8 +82,16 @@ class TodoWebapp {
     }
 
     def list(): NodeSeq = {
-        val itemList = getItemList()
-        getItemTable(itemList)
+        getItemTable(getItemList)
+    }
+
+    def logoutAction(xhtml: NodeSeq):  NodeSeq = {
+        def logout: Any = {
+            currentUser(null)
+            S.redirectTo("login")
+        }
+        bind("e", xhtml,
+            "logoutButton" --> SHtml.submit("ログアウト", logout _))
     }
 
     def errorAction(xhtml: NodeSeq):  NodeSeq = {
