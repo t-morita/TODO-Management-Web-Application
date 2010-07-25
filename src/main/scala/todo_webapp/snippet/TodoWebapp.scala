@@ -31,12 +31,6 @@ class TodoWebapp {
         <p>Error</p>
     }
 
-    def searchResults(): NodeSeq = {
-        val keyword = S.get("keyword").openOr("")
-        val itemList = getSearchItemList(keyword)
-        getItemTable(itemList)
-    }
-
     def getItemTable(itemList: List[TodoItem]): NodeSeq = {
         val sdf1 = new SimpleDateFormat("yyyy年MM月dd日");
         var itemTable = new Queue[Node]
@@ -48,10 +42,12 @@ class TodoWebapp {
             val itemId = item.id.toString
             var finished = "未"
             var isFinished = "false"
+            val deadline: Date = item.deadline
             val user = getUserById(item.userId).get
             if (item.finishedDate != null)  {
                 css = "background-color: #cccccc;"
-                finished = item.finishedDate.toString
+                val finishedDate: Date = item.finishedDate
+                finished = sdf1.format(finishedDate)
                 isFinished = "true"
             } else  if (currentUser.is == user && item.deadline.getTime >= Calendar.getInstance().getTimeInMillis) {
                 css="background-color: #ffbbbb;"
@@ -61,7 +57,7 @@ class TodoWebapp {
                 css="color: #ff0000;"
             }
             itemTable += <tr><td style={css}>{item.name}</td><td style={css}>{user.name}</td>
-                <td style={css}>{item.deadline}</td>
+                <td style={css}>{sdf1.format(deadline)}</td>
                 <td style={css}>{finished}</td>
                 <td style={css}>
                     <lift:TodoWebapp.toggleFinishedAction form="POST" item_id={itemId} isFinished={isFinished}>
@@ -101,6 +97,7 @@ class TodoWebapp {
             "return" --> SHtml.submit("戻る", cancel))
     }
 
+    // 要素数が１かそれ以外かで分けてもいいかもしれない
     def getUserById(id: Long): Option[TodoUser] = {
         val userList = TodoUser.findAll(By(TodoUser.id, id))
         if (userList.size == 0) {
@@ -257,9 +254,11 @@ class TodoWebapp {
         val itemId =  S.attr("item_id").openOr("none")
         val isFinished = S.attr("isFinished").openOr("none").toBoolean
 
-        def toggleFinished() = {
+        def toggleFinished(): JsCmd = {
             updateItem(itemId.toLong, getFinishedDate())
-            S.redirectTo("list")
+            val keyword = S.get("last_search_keyword").openOr("")
+            val itemList: List[TodoItem] = getSearchItemList(keyword)
+            JsCmds.SetHtml("todolist", getItemTable(itemList))
         }
 
         def getFinishedDate(): Date = {
@@ -275,7 +274,7 @@ class TodoWebapp {
             case _ => "エラー"
         }
         
-        bind("e", xhtml, "isFinished" --> SHtml.submit(buttonLabel, toggleFinished))
+        bind("e", xhtml, "isFinished" --> SHtml.ajaxButton(buttonLabel, toggleFinished _))
     }
 
     def deletePageAction(xhtml: NodeSeq):  NodeSeq = {
@@ -290,15 +289,23 @@ class TodoWebapp {
             "deleteTodo" --> SHtml.submit("削除", redirectDeletePage))
     }
 
-    def searchPageAction(xhtml: NodeSeq):  NodeSeq = {
+    def searchAction(xhtml: NodeSeq):  NodeSeq = {
         var keyword = ""
-        def redirectSearchPage() {
-            S.set("keyword", keyword)
-            S.redirectTo("search")
+
+        def setKeyword(kw: String): JsCmd  = {
+            keyword = kw
+            return null
         }
+
+        def searchTodoItem():JsCmd  = {
+            S.set("last_search_keyword", keyword)
+            val itemList = getSearchItemList(keyword)
+            JsCmds.SetHtml("todolist", getItemTable(itemList))
+        }
+
         bind("e", xhtml,
-            "keyword" --> SHtml.text(keyword, keyword = _, "size" -> "24"),
-            "search" --> SHtml.submit("検索", redirectSearchPage))
+            "keyword" --> SHtml.ajaxText("", setKeyword _, "size" -> "24"),
+            "search" --> SHtml.ajaxButton("検索", searchTodoItem _) )
     }
 
     def addAction(xhtml: NodeSeq):  NodeSeq = {
@@ -344,6 +351,7 @@ class TodoWebapp {
     object currentUser extends SessionVar[TodoUser](null)
 
     def getSearchItemList(keyword: String) : List[TodoItem] = {
+        println("key: "+ keyword)
         TodoItem.findAll(Like(TodoItem.name, "%"+keyword+"%"))
     }
 
