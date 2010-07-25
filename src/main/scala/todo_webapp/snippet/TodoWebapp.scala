@@ -422,7 +422,7 @@ class TodoWebapp {
         def auth(): Any = {
             getUser(userId, password) match {
                 case Some(user)  =>
-                    //                   S.containerSession.get.setMaxInactiveInterval(30)
+                    //  S.containerSession.get.setMaxInactiveInterval(30)
                     currentUser(user)
                     S.redirectTo("list")
                 case None =>
@@ -433,11 +433,6 @@ class TodoWebapp {
 
         def disableLoginButton(t: String) = {
             SetElemById("login", JsRaw(t), "disabled")
-        }
-
-        def enableLoginButton() = {
-            println("enable login ")
-            SetElemById("login", JsRaw("false"), "disabled")
         }
 
         def showMessage(id: String, msg: String) = {
@@ -458,11 +453,7 @@ class TodoWebapp {
             } else {
                 validPassword = true
                 var msg = showMessage(check_password_message, "パスワード入力は正常．")
-                if (validUserId && validPassword) {
-                    msg & enableLoginButton
-                } else {
-                    msg
-                }
+                checkUserIdandPassword(msg)
             }
         }
 
@@ -480,13 +471,18 @@ class TodoWebapp {
             } else {
                 validUserId = true
                 var msg = showMessage(check_user_id_message, "ユーザIDは正常．")
-                if (validUserId && validPassword) {
-                    msg & enableLoginButton
-                } else {
-                    msg
-                }
+                checkUserIdandPassword(msg)
             }
         }
+
+       def checkUserIdandPassword(msg: JsCmd) : JsCmd = {
+           if (validUserId && validPassword) {
+               msg & disableLoginButton("false")
+           } else {
+               msg
+           }
+       }
+
         bind("e", xhtml,
             "userId" --> SHtml.ajaxText("", checkUserId _),
             "password" --> SHtml.ajaxText("", checkPassword _, "type" -> "password"),
