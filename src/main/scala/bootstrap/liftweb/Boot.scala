@@ -27,10 +27,8 @@ class Boot {
                 Menu(Loc("add", List("add"), "Add")) ::
                 Menu(Loc("edit", List("edit"), "Edit")) ::
                 Menu(Loc("delete", List("delete"), "Delete")) ::
-                Menu(Loc("search", List("search"), "Search")) ::
                 Menu(Loc("upload", List("upload"), "Upload")) ::
                 Menu(Loc("error", List("error"), "Error")) ::
-                Menu(Loc("test", List("test"), "Test")) ::
                 Nil
         LiftRules.setSiteMap(SiteMap(entries:_*))
         Schemifier.schemify(true, Log.infoF _, TodoUser, TodoItem)
