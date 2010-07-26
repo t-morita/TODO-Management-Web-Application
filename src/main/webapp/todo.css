@@ -37,17 +37,29 @@ table.toolbar {
     margin-bottom: 32px;
 }
 
-table.list th {
+table#todolist_table {
+    width: 90%;
+    border-style: none;
+    font-size: 100%;
+}
+
+table#todolist_table thead tr th {
     width: 150px;
     text-align: left;
     padding: 8px;
     color: #ffffff;
     text-align: center;
     background-color: #5555aa;
+    font-size: 100%;
+    border-color: black;
 }
 
-table.list td {
+table#todolist_table tbody#todolist tr td {
+    font-size: 100%;
     padding: 8px;
+    border-style: solid;
+    border-width: 0.5px;
+    border-color: black;
 }
 
 /* 追加・編集・削除ページ */
@@ -68,7 +80,7 @@ td.add_button {
     padding: 8px;
 }
 
-.tbl_sty1 {background-color: #cccccc;}
-.tbl_sty2 {background-color: #ffbbbb;}
-.tbl_sty3 {background-color: #ffbbbb; color: #ff0000;}
-.tbl_sty4 {background-color: #bbbbff; color: #ff0000;}
+table#todolist_table tbody tr td.tbl_sty1 {background-color: #cccccc;}
+table#todolist_table tbody tr td.tbl_sty2 {background-color: #ffbbbb;}
+table#todolist_table tbody tr td.tbl_sty3 {background-color: #ffbbbb; color: #ff0000;}
+table#todolist_table tbody tr td.tbl_sty4 {background-color: #bbbbff; color: #ff0000;}

@@ -9,6 +9,7 @@ import java.sql.DriverManager
 import net.liftweb.mapper._
 import com.mysql.jdbc.Connection
 import todo_webapp.model.{TodoItem, TodoUser}
+import net.liftweb.widgets.tablesorter.TableSorter
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -26,10 +27,10 @@ class Boot {
                 Menu(Loc("login", List("login"), "Login")) ::
                 Menu(Loc("add", List("add"), "Add")) ::
                 Menu(Loc("edit", List("edit"), "Edit")) ::
-                Menu(Loc("delete", List("delete"), "Delete")) ::
                 Menu(Loc("upload", List("upload"), "Upload")) ::
                 Menu(Loc("error", List("error"), "Error")) ::
                 Nil
+        TableSorter.init
         LiftRules.setSiteMap(SiteMap(entries:_*))
         Schemifier.schemify(true, Log.infoF _, TodoUser, TodoItem)
     }

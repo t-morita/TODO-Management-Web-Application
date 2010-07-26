@@ -1,6 +1,9 @@
 <lift:surround with="default" at="content">
     <head>
         <title>作業一覧</title>
+        <script type="javascript" src="scripts/myscripts.js"/>
+        <script src="scripts/jquery-ui-1.7.3.custom.min.js" type="text/javascript"/>
+        <link rel="STYLESHEET" href="css/ui-lightness/jquery-ui-1.7.3.custom.css" type="text/css" />
     </head>
     <h1>
         作業一覧
@@ -10,6 +13,7 @@
         ようこそ <lift:TodoWebapp.getUserName/> さん
         <lift:TodoWebapp.logoutAction form="POST">
             <e:logoutButton/>
+            <e:confirmLogoutButton/>
         </lift:TodoWebapp.logoutAction>
     </div>
     <!-- 作業登録・検索 -->
@@ -39,7 +43,8 @@
             </td>
         </tr>
     </table>
-    <table border="0" width="90%" class="list" >
+    <lift:TodoWebapp.sortTable/>
+    <table id="todolist_table" class="tablesorter" >
         <thead>
         <tr>
             <th>
@@ -63,4 +68,6 @@
         <lift:TodoWebapp.list/>
         </tbody>
     </table>
+    <div id="confirm_dialog" />
+    <div id="confirm_logout_dialog" />
 </lift:surround>

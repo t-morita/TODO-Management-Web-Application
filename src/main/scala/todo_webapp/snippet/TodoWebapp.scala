@@ -4,8 +4,9 @@ import todo_webapp.model._
 import net.liftweb.http._
 
 import js.JE.{JsRaw, JsEq, ValById, Str}
+import js.jquery.JqJE
+import js.{JE, JsCmds, JsCmd}
 import js.JsCmds._
-import js.{JsCmds, JsCmd}
 import net.liftweb.common._
 import net.liftweb.util.Helpers._
 import scala.xml._
@@ -13,6 +14,7 @@ import collection.immutable.Queue
 import net.liftweb.mapper.{Like, By}
 import java.util.{Date, Calendar}
 import java.text.SimpleDateFormat
+import net.liftweb.widgets.tablesorter.TableSorter
 
 /**
  * Created by IntelliJ IDEA.
@@ -56,7 +58,9 @@ class TodoWebapp {
             } else if (item.deadline.getTime < Calendar.getInstance().getTimeInMillis) {
                 css = "tbl_sty4"
             }
-            itemTable += <tr><td class={css}>{item.name}</td><td class={css}>{user.name}</td>
+            itemTable += <tr id={"itemId"+itemId}>
+                <td class={css}>{item.name}</td>
+                <td class={css}>{user.name}</td>
                 <td class={css}>{sdf1.format(deadline)}</td>
                 <td class={css}>{finished}</td>
                 <td class={css}>
@@ -71,14 +75,18 @@ class TodoWebapp {
                     </lift:TodoWebapp.editPageAction>
                 </td>
                 <td class={css}>
-                    <lift:TodoWebapp.deletePageAction form="POST" item_id={itemId}>
-                            <e:itemId/>
-                            <e:deleteTodo/>
-                    </lift:TodoWebapp.deletePageAction>
+                    <lift:TodoWebapp.deleteAction form="POST" item_id={itemId} >
+                            <e:deleteItem/>
+                            <e:confirmDeleteItem/>
+                    </lift:TodoWebapp.deleteAction>
                 </td>
             </tr>
         }
         itemTable
+    }
+
+    def sortTable() :NodeSeq = {
+        TableSorter("#todolist_table")
     }
 
     def list(): NodeSeq = {
@@ -86,12 +94,19 @@ class TodoWebapp {
     }
 
     def logoutAction(xhtml: NodeSeq):  NodeSeq = {
-        def logout: Any = {
+        
+        def logout(): Any = {
             currentUser(null)
             S.redirectTo("login")
         }
+
+        def confirmLogout(): JsCmd = {
+            JsRaw(JE.JsFunc("openConfirmLogoutDialog", JE.Str("ログアウトしますか？"), JE.Str("ログアウト")).toJsCmd)
+        }
+
         bind("e", xhtml,
-            "logoutButton" --> SHtml.submit("ログアウト", logout _))
+            "logoutButton" --> SHtml.submit("logout", logout _, "id" -> "logoutButton", "style" -> "visibility: hidden;"),
+            "confirmLogoutButton" --> SHtml.ajaxButton("ログアウト", confirmLogout _))
     }
 
     def errorAction(xhtml: NodeSeq):  NodeSeq = {
@@ -148,11 +163,6 @@ class TodoWebapp {
         updateItem.save
     }
 
-    def deleteItem(id: Long) = {
-        val deleteItem = TodoItem.findAll(By(TodoItem.id, id))(0)
-        deleteItem.delete_!
-    }
-
     def getDate(year: String, month: String, day: String): Option[Date] = {
         try {
             val calendar = Calendar.getInstance()
@@ -162,22 +172,6 @@ class TodoWebapp {
         } catch {
             case e: NumberFormatException => None
         }
-    }
-
-    def deleteAction(xhtml: NodeSeq):  NodeSeq = {
-
-        val itemId = S.get("item_id").openOr("none")
-        val item = getItem(itemId.toLong).get
-        S.notice(item.toString)
-
-        def deleteTodo(): Any = {
-            deleteItem(itemId.toLong)
-            S.redirectTo("list")
-        }
-
-        bind("e", xhtml,
-            "itemName" --> item.name,
-            "deleteTodo" --> SHtml.submit("削除", deleteTodo))
     }
 
     def editAction(xhtml: NodeSeq):  NodeSeq = {
@@ -266,7 +260,8 @@ class TodoWebapp {
             updateItem(itemId.toLong, getFinishedDate())
             val keyword = S.get("last_search_keyword").openOr("")
             val itemList: List[TodoItem] = getSearchItemList(keyword)
-            JsCmds.SetHtml("todolist", getItemTable(itemList))
+            JsCmds.SetHtml("todolist", getItemTable(itemList)) &
+                    JsRaw(JE.JsFunc("updateTodoListTable").toJsCmd)
         }
 
         def getFinishedDate(): Date = {
@@ -285,16 +280,25 @@ class TodoWebapp {
         bind("e", xhtml, "isFinished" --> SHtml.ajaxButton(buttonLabel, toggleFinished _))
     }
 
-    def deletePageAction(xhtml: NodeSeq):  NodeSeq = {
+    def deleteAction(xhtml: NodeSeq):  NodeSeq = {
 
-        def redirectDeletePage() = {
-            S.set("item_id", S.param("item_id").openOr("none"))
-            S.redirectTo("delete")
+        val delItemId = S.attr("item_id").openOr("none")
+        val delItem: TodoItem = getItem(delItemId.toLong).get
+
+       def deleteTodoItem() : JsCmd = {
+           delItem.delete_!
+           return null;
+       }
+
+        def confirmDeleteTodoItem(): JsCmd = {
+            val title = "削除確認"
+            val message = "項目"+ delItem.name + "を削除します。\n よろしいですか？"
+            JsRaw(JE.JsFunc("openConfirmDialog", JE.Str(message), JE.Str(title), JE.Str(delItemId)).toJsCmd)
         }
 
         bind("e", xhtml,
-            "itemId" --> SHtml.hidden(null, S.attr("item_id").openOr("none"), "name" -> "item_id"),
-            "deleteTodo" --> SHtml.submit("削除", redirectDeletePage))
+            "deleteItem" --> SHtml.ajaxButton("del", deleteTodoItem _, "id" -> ("delItemId"+delItemId), "style" -> "visibility:hidden;"),
+            "confirmDeleteItem" --> SHtml.ajaxButton("削除", confirmDeleteTodoItem _))
     }
 
     def searchAction(xhtml: NodeSeq):  NodeSeq = {
@@ -308,7 +312,8 @@ class TodoWebapp {
         def searchTodoItem():JsCmd  = {
             S.set("last_search_keyword", keyword)
             val itemList = getSearchItemList(keyword)
-            JsCmds.SetHtml("todolist", getItemTable(itemList))
+            JsCmds.SetHtml("todolist", getItemTable(itemList)) &
+                    JsRaw(JE.JsFunc("updateTodoListTable").toJsCmd)
         }
 
         bind("e", xhtml,
