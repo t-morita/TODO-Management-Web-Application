@@ -26,13 +26,13 @@ class Boot {
                 Menu(Loc("list", List("list"), "List")) ::
                 Menu(Loc("login", List("login"), "Login")) ::
                 Menu(Loc("add", List("add"), "Add")) ::
-                Menu(Loc("edit", List("edit"), "Edit")) ::
                 Menu(Loc("upload", List("upload"), "Upload")) ::
                 Menu(Loc("error", List("error"), "Error")) ::
                 Nil
         TableSorter.init
         LiftRules.setSiteMap(SiteMap(entries:_*))
         Schemifier.schemify(true, Log.infoF _, TodoUser, TodoItem)
+       // TodoUser.create.name("Test").password("test").userId("test").save
     }
 }
 

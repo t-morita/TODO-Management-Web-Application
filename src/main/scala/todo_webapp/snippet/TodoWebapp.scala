@@ -57,6 +57,8 @@ class TodoWebapp {
                 css = "tbl_sty3"
             } else if (item.deadline.getTime < Calendar.getInstance().getTimeInMillis) {
                 css = "tbl_sty4"
+            } else {
+                css = "tbl_sty5"
             }
             itemTable += <tr id={"itemId"+itemId}>
                 <td class={css}>{item.name}</td>
@@ -69,10 +71,9 @@ class TodoWebapp {
                     </lift:TodoWebapp.toggleFinishedAction>
                 </td>
                 <td class={css}>
-                    <lift:TodoWebapp.editPageAction form="POST" item_id={itemId}>
-                            <e:itemId/>
+                    <lift:TodoWebapp.showUpdateTodoItemDialogAction form="POST" item_id={itemId}>
                             <e:editTodo/>
-                    </lift:TodoWebapp.editPageAction>
+                    </lift:TodoWebapp.showUpdateTodoItemDialogAction>
                 </td>
                 <td class={css}>
                     <lift:TodoWebapp.deleteAction form="POST" item_id={itemId} >
@@ -174,7 +175,7 @@ class TodoWebapp {
         }
     }
 
-    def editAction(xhtml: NodeSeq):  NodeSeq = {
+    def updateAction(xhtml: NodeSeq):  NodeSeq = {
 
         val itemId = S.get("item_id").openOr("none")
         val currentItem: TodoItem = getItem(itemId.toLong).get
@@ -196,8 +197,9 @@ class TodoWebapp {
 
         val userMap = getUserList.map(u => u.id.toString -> u.name.toString)
 
-        def setSelectedUser(userId: String): Any = {
+        def setSelectedUser(userId: String): JsCmd = {
             selectedUserId = userId.toLong
+            return null
         }
 
         def getFinishedDate(): Date = {
@@ -207,29 +209,65 @@ class TodoWebapp {
                 null
             }
         }
-        def editTodo(): Any = {
+        
+        def updateTodoItem(): JsCmd = {
             getDate(year, month, day) match {
                 case Some(date) =>
                     updateItem(id, name, selectedUserId, date, getFinishedDate)
-                    S.redirectTo("list")
-                case None => S.error("カレンダーの書式が間違っています")
+                    JsCmds.SetHtml("todolist", getItemTable(getItemList)) &
+                            JsRaw(JE.JsFunc("updateTodoListTable").toJsCmd)
+                case None =>
+                    // もう少し良いやり方があるはず
+                    JsCmds.SetHtml("update_todo_item_error_message", <p>カレンダーの書式が間違っています</p>)&
+                    JsRaw(JE.JsFunc("openUpdateTodoItemDialog").toJsCmd)
             }
         }
 
-        def setIsFinished(t: Boolean):Any = {
+       def checkDateFormat():JsCmd = {
+           getDate(year, month, day) match {
+               case None =>
+                   JsCmds.SetHtml("update_todo_item_error_message", <p>カレンダーの書式が間違っています</p>)
+               case _ =>
+                    JsCmds.SetHtml("update_todo_item_error_message", <span></span>)
+           }
+       }
+
+        def setIsFinished(t: Boolean): JsCmd = {
             isFinished = t
+            return null
         }
 
-        bind("e", xhtml,
-            "name" --> SHtml.text(name, name = _, "size" -> "24"),
-            "personInCharge" --> SHtml.select(userMap, Box(selectedUserId.toString), setSelectedUser(_)),
-            "year" --> SHtml.text(year, year = _, "size" -> "8"),
-            "month" --> SHtml.text(month, month = _, "size" -> "4"),
-            "day" --> SHtml.text(day, day = _, "size" -> "4"),
-            "finishedCheckBox" --> SHtml.checkbox(isFinished, setIsFinished(_), "size" -> "8") ,
-            "submit" --> SHtml.submit("更新", editTodo))
-    }
+       def setName(n: String): JsCmd = {
+          name = n
+           return null
+       }
 
+        def setYear(y: String): JsCmd = {
+            year = y
+            return checkDateFormat
+        }
+
+        def setMonth(m: String): JsCmd = {
+            month = m
+            return checkDateFormat
+        }
+
+        def setDay(d: String): JsCmd = {
+            day = d
+            return checkDateFormat
+        }
+
+        val textBoxClass = "class" -> "text ui-widget-content ui-corner-all"
+        
+        bind("e", xhtml,
+            "name" --> SHtml.ajaxText(name, setName _, "size" -> "24", textBoxClass),
+            "personInCharge" --> SHtml.ajaxSelect(userMap, Box(selectedUserId.toString), setSelectedUser _),
+            "year" --> SHtml.ajaxText(year, setYear _, "size" -> "8", textBoxClass),
+            "month" --> SHtml.ajaxText(month, setMonth _, "size" -> "4", textBoxClass),
+            "day" --> SHtml.ajaxText(day, setDay _, "size" -> "4", textBoxClass),
+            "finishedCheckBox" --> SHtml.ajaxCheckbox(isFinished, setIsFinished _, "size" -> "8") ,
+            "submit" --> SHtml.ajaxButton("更新", updateTodoItem _, "style" -> "visibility:hidden;", "id" -> "update_todoitem_button" ))
+    }
 
     def addPageAction(xhtml: NodeSeq):  NodeSeq = {
         def redirectAddPage() = {
@@ -239,16 +277,31 @@ class TodoWebapp {
             "submitTodo" --> SHtml.submit("作業登録", redirectAddPage))
     }
 
-    def editPageAction(xhtml: NodeSeq):  NodeSeq = {
+    def showUpdateTodoItemDialogAction(xhtml: NodeSeq):  NodeSeq = {
+        val updateItemId = S.attr("item_id").openOr("none")
+        def openUpdateTodoItemDialog(): JsCmd = {
+            S.set("item_id", updateItemId)
+            val updateTodoItemForm = <lift:TodoWebapp.updateAction form="POST">
+                <div id="update_todo_item_error_message"/>
+                <fieldset>
+                <label>項目名</label><br/>
+                    <e:name/><br/>
+                <label>担当者</label><br/>
+                    <e:personInCharge/><br/>
+                <label>期限</label><br/>
+                    <e:year/> / <e:month/> / <e:day/><br/>
+                <label>完了</label><br/>
+                    <e:finishedCheckBox/>完了した
+                <e:submit/>
+                </fieldset>
+            </lift:TodoWebapp.updateAction>
 
-        def redirectEditPage() = {
-            S.set("item_id", S.param("item_id").openOr("none"))
-            S.redirectTo("edit")
+            JsCmds.SetHtml("update_todoitem_dialog", updateTodoItemForm) &
+            JsRaw(JE.JsFunc("openUpdateTodoItemDialog").toJsCmd)
         }
 
         bind("e", xhtml,
-            "itemId" --> SHtml.hidden(null, S.attr("item_id").openOr("none"), "name" -> "item_id"),
-            "editTodo" --> SHtml.submit("更新", redirectEditPage))
+            "editTodo" --> SHtml.ajaxButton("更新", openUpdateTodoItemDialog _))
     }
 
     def toggleFinishedAction(xhtml: NodeSeq):  NodeSeq = {
