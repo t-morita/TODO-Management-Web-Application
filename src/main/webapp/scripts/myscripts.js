@@ -2,27 +2,24 @@ function updateTodoListTable() {
     $('#todolist_table').trigger("update");
 }
 
-function openConfirmLogoutDialog(message, title) {
+function openConfirmLogoutDialog(title) {
     $('#confirm_logout_dialog').dialog({
             autoOpen: false,
             height: 200,
             width: 300,
             modal: true,
             title: title,
-            open:function(){
-                $('#confirm_logout_dialog').text(message);
-            },
             overlay: {
                 backgroundColor: '#000',
                 opacity: 0.5
             },
             buttons: {
                 OK: function() {
-                    $(this).dialog('close');
+                    $(this).dialog('destroy');
                     $('#logoutButton').click();
                 },
                 Cancel: function() {
-                    $(this).dialog('close');
+                    $(this).dialog('destroy');
                 }
             }
         }
@@ -30,29 +27,26 @@ function openConfirmLogoutDialog(message, title) {
     $('#confirm_logout_dialog').dialog('open');
 }
 
-function openConfirmDialog(message, title, delItemId) {
+function openConfirmDialog(title, delItemId) {
     $('#confirm_dialog').dialog({
             autoOpen: false,
             height: 200,
-            width: 300,
+            width: 400,
             modal: true,
             title: title,
-            open:function(){
-                $('#confirm_dialog').text(message);
-            },
             overlay: {
                 backgroundColor: '#000',
                 opacity: 0.5
             },
             buttons: {
                 OK: function() {
-                    $(this).dialog('close');
+                    $(this).dialog('destroy');
                     $('#delItemId'+delItemId).click();
                     $('#itemId'+delItemId).remove();
                     updateTodoListTable();
                 },
                 Cancel: function() {
-                    $(this).dialog('close');
+                    $(this).dialog('destroy');
                 }
             }
         }
@@ -60,28 +54,28 @@ function openConfirmDialog(message, title, delItemId) {
     $('#confirm_dialog').dialog('open');
 }
 
-function openUpdateTodoItemDialog() {
-    $('#update_todoitem_dialog').dialog({
+function openFormDialog(dialog, title, buttonId) {
+    $(dialog).dialog({
             autoOpen: false,
             height: 400,
             width: 500,
             modal: true,
-            title: "作業更新",
+            title: title,
             overlay: {
                 backgroundColor: '#000',
                 opacity: 0.5
             },
             buttons: {
                 OK: function() {
-                    $('#update_todoitem_button').click();
-                    $(this).dialog('close');
+                    $(buttonId).click();
+                    $(this).dialog('destroy');
                 },
                 Cancel: function() {
-                    $(this).dialog('close');
+                    $(this).dialog('destroy');
                 }
             }
         }
     );
-    $('#update_todoitem_dialog').dialog('open');
+    $(dialog).dialog('open');
 }
 

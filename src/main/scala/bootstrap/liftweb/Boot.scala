@@ -22,17 +22,14 @@ class Boot {
         DB.defineConnectionManager(DefaultConnectionIdentifier, DBVendor)
 
         // Build SiteMap
-        val entries = Menu(Loc("index", List("index"), "Home")) ::
-                Menu(Loc("list", List("list"), "List")) ::
+        val entries = Menu(Loc("list", List("list"), "List")) ::
                 Menu(Loc("login", List("login"), "Login")) ::
-                Menu(Loc("add", List("add"), "Add")) ::
                 Menu(Loc("upload", List("upload"), "Upload")) ::
                 Menu(Loc("error", List("error"), "Error")) ::
                 Nil
         TableSorter.init
         LiftRules.setSiteMap(SiteMap(entries:_*))
         Schemifier.schemify(true, Log.infoF _, TodoUser, TodoItem)
-       // TodoUser.create.name("Test").password("test").userId("test").save
     }
 }
 

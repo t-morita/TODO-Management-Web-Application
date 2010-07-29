@@ -102,7 +102,8 @@ class TodoWebapp {
         }
 
         def confirmLogout(): JsCmd = {
-            JsRaw(JE.JsFunc("openConfirmLogoutDialog", JE.Str("ログアウトしますか？"), JE.Str("ログアウト")).toJsCmd)
+            JsCmds.SetHtml("confirm_logout_dialog", <p>ログアウトしますか？</p>) &
+            JsRaw(JE.JsFunc("openConfirmLogoutDialog", JE.Str("ログアウト")).toJsCmd)
         }
 
         bind("e", xhtml,
@@ -217,20 +218,12 @@ class TodoWebapp {
                     JsCmds.SetHtml("todolist", getItemTable(getItemList)) &
                             JsRaw(JE.JsFunc("updateTodoListTable").toJsCmd)
                 case None =>
+                    val dialogId = "#todoitem_dialog"
                     // もう少し良いやり方があるはず
-                    JsCmds.SetHtml("update_todo_item_error_message", <p>カレンダーの書式が間違っています</p>)&
-                    JsRaw(JE.JsFunc("openUpdateTodoItemDialog").toJsCmd)
+                    JsCmds.SetHtml("todoitem_error_message", <p>カレンダーの書式が間違っています</p>)&
+                    JsRaw(JE.JsFunc("openFormDialog", JE.Str(dialogId), JE.Str("作業更新"), JE.Str("#update_todoitem_button")).toJsCmd)
             }
         }
-
-       def checkDateFormat():JsCmd = {
-           getDate(year, month, day) match {
-               case None =>
-                   JsCmds.SetHtml("update_todo_item_error_message", <p>カレンダーの書式が間違っています</p>)
-               case _ =>
-                    JsCmds.SetHtml("update_todo_item_error_message", <span></span>)
-           }
-       }
 
         def setIsFinished(t: Boolean): JsCmd = {
             isFinished = t
@@ -244,17 +237,17 @@ class TodoWebapp {
 
         def setYear(y: String): JsCmd = {
             year = y
-            return checkDateFormat
+            return checkDateFormat(year, month, day)
         }
 
         def setMonth(m: String): JsCmd = {
             month = m
-            return checkDateFormat
+            return checkDateFormat(year, month, day)
         }
 
         def setDay(d: String): JsCmd = {
             day = d
-            return checkDateFormat
+            return checkDateFormat(year, month, day)
         }
 
         val textBoxClass = "class" -> "text ui-widget-content ui-corner-all"
@@ -269,20 +262,110 @@ class TodoWebapp {
             "submit" --> SHtml.ajaxButton("更新", updateTodoItem _, "style" -> "visibility:hidden;", "id" -> "update_todoitem_button" ))
     }
 
-    def addPageAction(xhtml: NodeSeq):  NodeSeq = {
-        def redirectAddPage() = {
-            S.redirectTo("add")
+    def checkDateFormat(year: String, month: String, day: String):JsCmd = {
+        getDate(year, month, day) match {
+            case None =>
+                JsCmds.SetHtml("todoitem_error_message", <p>カレンダーの書式が間違っています</p>)
+            case _ =>
+                JsCmds.SetHtml("todoitem_error_message", <span></span>)
         }
-        bind("e", xhtml,
-            "submitTodo" --> SHtml.submit("作業登録", redirectAddPage))
     }
+
+    def showAddTodoItemDialogAction(xhtml: NodeSeq):  NodeSeq = {
+        val newItemId = S.attr("item_id").openOr("none")
+        def openAddTodoItemDialog(): JsCmd = {
+            S.set("item_id", newItemId)
+            val addTodoItemForm = <lift:TodoWebapp.addTodoItemAction form="POST">
+                    <div id="todoitem_error_message"/>
+                <fieldset>
+                    <label>項目名</label><br/>
+                        <e:name/><br/>
+                    <label>担当者</label><br/>
+                        <e:personInCharge/><br/>
+                    <label>期限</label><br/>
+                        <e:year/> / <e:month/> / <e:day/><br/>
+                    <e:addTodoItemButton/>
+                </fieldset>
+            </lift:TodoWebapp.addTodoItemAction>
+
+            val dialogId = "#todoitem_dialog"
+            JsCmds.SetHtml(dialogId, addTodoItemForm) &
+            JsRaw(JE.JsFunc("openFormDialog",JE.Str(dialogId), JE.Str("作業登録"), JE.Str("#add_todoitem_button")).toJsCmd)
+        }
+
+        bind("e", xhtml, "addTodoItem" --> SHtml.ajaxButton("作業登録", openAddTodoItemDialog _))
+    }
+
+   def addTodoItemAction(xhtml: NodeSeq) : NodeSeq = {
+
+       var name = ""
+       var year = ""
+       var month = ""
+       var day = ""
+       var selectedUserId = currentUser.is.id.toString
+
+       def addTodoItem(): JsCmd = {
+           getDate(year, month, day) match {
+               case Some(date) =>
+                   println("insert b")
+                   insertItem(name, selectedUserId.toLong, date)
+                   println("insert a")
+                   JsCmds.SetHtml("todolist", getItemTable(getItemList)) &
+                           JsRaw(JE.JsFunc("updateTodoListTable").toJsCmd)
+               case None =>
+                   val dialogId = "#todoitem_dialog"
+                   // もう少し良いやり方があるはず
+                   JsCmds.SetHtml("todoitem_error_message", <p>カレンダーの書式が間違っています</p>)&
+                           JsRaw(JE.JsFunc("openFormDialog", JE.Str(dialogId), JE.Str("作業登録"), JE.Str("#add_todoitem_button")).toJsCmd)
+           }
+       }
+
+        def setSelectedUser(userId: String): JsCmd = {
+            selectedUserId = userId
+            return null
+        }
+
+       def setName(n: String): JsCmd = {
+           name = n
+           return null
+       }
+
+       def setYear(y: String): JsCmd = {
+           year = y
+           return checkDateFormat(year, month, day)
+       }
+
+       def setMonth(m: String): JsCmd = {
+           month = m
+           return checkDateFormat(year, month, day)
+       }
+
+       def setDay(d: String): JsCmd = {
+           day = d
+           return checkDateFormat(year, month, day)
+       }
+
+       val userMap = getUserList.map(u => u.id.toString -> u.name.toString)
+       S.notice(userMap.toString)
+       S.notice(selectedUserId)
+
+       val textBoxClass = "class" -> "text ui-widget-content ui-corner-all"
+
+        bind("e", xhtml,
+            "name" --> SHtml.ajaxText(name, setName _, textBoxClass, "size" -> "24"),
+            "personInCharge" --> SHtml.ajaxSelect(userMap, Box(currentUser.is.id.toString), setSelectedUser(_)),
+            "year" --> SHtml.ajaxText(year, setYear _, textBoxClass, "size" -> "8"),
+            "month" --> SHtml.ajaxText(month, setMonth _, textBoxClass, "size" -> "4"),
+            "day" --> SHtml.ajaxText(day, setDay _, textBoxClass, "size" -> "4"),
+            "addTodoItemButton" --> SHtml.ajaxButton("登録", addTodoItem _,   "style" -> "visibility:hidden;", "id" -> "add_todoitem_button"))
+   }
 
     def showUpdateTodoItemDialogAction(xhtml: NodeSeq):  NodeSeq = {
         val updateItemId = S.attr("item_id").openOr("none")
         def openUpdateTodoItemDialog(): JsCmd = {
             S.set("item_id", updateItemId)
             val updateTodoItemForm = <lift:TodoWebapp.updateAction form="POST">
-                <div id="update_todo_item_error_message"/>
+                <div id="todoitem_error_message"/>
                 <fieldset>
                 <label>項目名</label><br/>
                     <e:name/><br/>
@@ -296,8 +379,9 @@ class TodoWebapp {
                 </fieldset>
             </lift:TodoWebapp.updateAction>
 
-            JsCmds.SetHtml("update_todoitem_dialog", updateTodoItemForm) &
-            JsRaw(JE.JsFunc("openUpdateTodoItemDialog").toJsCmd)
+            val dialogId = "#todoitem_dialog"
+            JsCmds.SetHtml(dialogId, updateTodoItemForm) &
+            JsRaw(JE.JsFunc("openFormDialog",JE.Str(dialogId), JE.Str("作業更新"), JE.Str("#update_todoitem_button")).toJsCmd)
         }
 
         bind("e", xhtml,
@@ -345,8 +429,12 @@ class TodoWebapp {
 
         def confirmDeleteTodoItem(): JsCmd = {
             val title = "削除確認"
-            val message = "項目"+ delItem.name + "を削除します。\n よろしいですか？"
-            JsRaw(JE.JsFunc("openConfirmDialog", JE.Str(message), JE.Str(title), JE.Str(delItemId)).toJsCmd)
+            val message = <p>項目 {delItem.name}を削除します。<br/> よろしいですか？</p>
+            S.notice(delItemId)
+            S.notice(delItem.name.toString)
+
+            JsCmds.SetHtml("confirm_dialog", message) &
+            JsRaw(JE.JsFunc("openConfirmDialog", JE.Str(title), JE.Str(delItemId)).toJsCmd)
         }
 
         bind("e", xhtml,
@@ -372,37 +460,6 @@ class TodoWebapp {
         bind("e", xhtml,
             "keyword" --> SHtml.ajaxText("", setKeyword _, "size" -> "24"),
             "search" --> SHtml.ajaxButton("検索", searchTodoItem _) )
-    }
-
-    def addAction(xhtml: NodeSeq):  NodeSeq = {
-        var name = ""
-        var year = ""
-        var month = ""
-        var day = ""
-        var selectedUserId = ""
-
-        def entryTodo(): Any = {
-            getDate(year, month, day) match {
-                case Some(date) =>
-                    insertItem(name, selectedUserId.toLong, date)
-                    S.redirectTo("list")
-                case None => S.error("カレンダーの書式が間違っています")
-            }
-        }
-
-        def setSelectedUser(userId: String): Any = {
-            selectedUserId = userId
-        }
-
-        val userMap = getUserList.map(u => u.id.toString -> u.name.toString)
-        S.notice(userMap.toString)
-        bind("e", xhtml,
-            "name" --> SHtml.text(name, name = _, "size" -> "24"),
-            "personInCharge" --> SHtml.select(userMap, Box(currentUser.is.id.toString), setSelectedUser(_)),
-            "year" --> SHtml.text(year, year = _, "size" -> "8"),
-            "month" --> SHtml.text(month, month = _, "size" -> "4"),
-            "day" --> SHtml.text(day, day = _, "size" -> "4"),
-            "submit" --> SHtml.submit("登録", entryTodo))
     }
 
     def listAction(xhtml: NodeSeq):  NodeSeq = {
@@ -470,6 +527,63 @@ class TodoWebapp {
         }
         return true
     }
+
+
+    def addUserAction(xhtml: NodeSeq):NodeSeq  = {
+        var userName = ""
+        var userId = ""
+        var password = ""
+
+        def setUserName(un: String): JsCmd = {
+            userName = un
+            if (userName == "") {
+                JsCmds.SetHtml("add_user_error_message", <p>ユーザ名を入力してください．</p>)
+            } else {
+                return null
+            }
+        }
+
+        def setUserId(id: String): JsCmd = {
+            userId = id
+            if (userId == "") {
+                JsCmds.SetHtml("add_user_error_message", <p>ユーザIDを入力してください．</p>)
+            } else {
+                return null
+            }
+        }
+
+        def setPassword(p: String): JsCmd = {
+            password = p
+            if (password == "") {
+                JsCmds.SetHtml("add_user_error_message", <p>パスワードを入力してください．</p>)
+            } else {
+                return null
+            }
+        }
+
+        val textBoxClass = "class" -> "text ui-widget-content ui-corner-all"
+
+       def addUser(): JsCmd = {
+           if (userName != "" && userId != "" && password != "") {
+               getUser(userId) match {
+                   case Some(user) =>
+                       JsCmds.SetHtml("add_user_error_message", <p>別のユーザIDにしてください．</p>)
+                   case _ =>
+                       TodoUser.create.name(userName).userId(userId).password(password).save
+                       return null
+               }
+           } else {
+               JsCmds.SetHtml("add_user_error_message", <p>ユーザ名またはユーザIDまたはパスワードが適切に入力されていません．</p>)
+           }
+       }
+
+        bind("e", xhtml,
+            "userName" --> SHtml.ajaxText(userName, setUserName _, textBoxClass, "size" -> "24"),
+            "userId" --> SHtml.ajaxText(userId, setUserId _, textBoxClass, "size" -> "24"),
+            "password" --> SHtml.ajaxText(password, setPassword _, textBoxClass, "type" -> "password", "size" -> "24"),
+            "addUserButton" --> SHtml.ajaxButton("登録", addUser _,   "id" -> "add_user_button", "style" -> "visibility: hidden;"))
+    }
+
 
     def loginAction(xhtml: NodeSeq):  NodeSeq = {
         var userId = ""
@@ -541,10 +655,30 @@ class TodoWebapp {
            }
        }
 
+       def showAddUserDialog() : JsCmd = {
+           val addUserForm = <lift:TodoWebapp.addUserAction form="POST">
+                   <div id="add_user_error_message"/>
+               <fieldset>
+                   <label>ユーザ名</label><br/>
+                       <e:userName/><br/>
+                   <label>ユーザID</label><br/>
+                       <e:userId/><br/>
+                   <label>パスワード</label><br/>
+                       <e:password/><br/>
+                       <e:addUserButton/>
+               </fieldset>
+           </lift:TodoWebapp.addUserAction>
+
+           val dialogId = "#add_user_dialog"
+           JsCmds.SetHtml(dialogId, addUserForm) &
+                   JsRaw(JE.JsFunc("openFormDialog", JE.Str(dialogId), JE.Str("ユーザ登録"), JE.Str("#add_user_button")).toJsCmd)
+       }
+
         bind("e", xhtml,
             "userId" --> SHtml.ajaxText("", checkUserId _),
             "password" --> SHtml.ajaxText("", checkPassword _, "type" -> "password"),
-            "submit" --> SHtml.submit("ログイン", auth, "id" -> "login", "disabled" -> "true"))
+            "login" --> SHtml.submit("ログイン", auth, "id" -> "login", "disabled" -> "true"),
+            "addUser" --> SHtml.ajaxButton("ユーザ登録", showAddUserDialog _ ))
     }
 
 }

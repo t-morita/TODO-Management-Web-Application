@@ -1,6 +1,9 @@
 <lift:surround with="default" at="content">
     <head>
         <title>ログイン</title>
+        <script src="./scripts/jquery-ui-1.7.3.custom.min.js" type="text/javascript"/>
+        <link rel="STYLESHEET" href="./css/ui-lightness/jquery-ui-1.7.3.custom.css" type="text/css" />
+        <script type="text/javascript" src="scripts/myscripts.js"/>
     </head>
     <h1>ログイン</h1>
     <hr/>
@@ -26,8 +29,11 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="2" class="login_button">
-                        <e:submit/>
+                    <td  class="login_button">
+                        <e:login/>
+                    </td>
+                    <td class="login_button">
+                        <e:addUser/>
                     </td>
                 </tr>
                 </tbody>
@@ -42,4 +48,5 @@
             </table>
         </div>
     </lift:TodoWebapp.loginAction>
+    <div id="add_user_dialog"/>
 </lift:surround>

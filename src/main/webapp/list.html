@@ -1,9 +1,9 @@
 <lift:surround with="default" at="content">
     <head>
         <title>作業一覧</title>
-        <script type="javascript" src="scripts/myscripts.js"/>
-        <script src="scripts/jquery-ui-1.7.3.custom.min.js" type="text/javascript"/>
-        <link rel="STYLESHEET" href="css/ui-lightness/jquery-ui-1.7.3.custom.css" type="text/css" />
+        <script src="./scripts/jquery-ui-1.7.3.custom.min.js" type="text/javascript"/>
+        <link rel="STYLESHEET" href="./css/ui-lightness/jquery-ui-1.7.3.custom.css" type="text/css" />
+        <script type="text/javascript" src="scripts/myscripts.js"/>
     </head>
     <h1>
         作業一覧
@@ -19,11 +19,11 @@
     <!-- 作業登録・検索 -->
     <table border="0" width="90%" class="toolbar">
         <tr>
-            <lift:TodoWebapp.addPageAction form="POST">
+            <lift:TodoWebapp.showAddTodoItemDialogAction form="POST">
                 <td>
-                    <e:submitTodo/>
+                    <e:addTodoItem/>
                 </td>
-            </lift:TodoWebapp.addPageAction>
+            </lift:TodoWebapp.showAddTodoItemDialogAction>
             <td align="right">
                 <table border="0">
                     <tr>
@@ -70,6 +70,6 @@
     </table>
     <div id="confirm_dialog" />
     <div id="confirm_logout_dialog" />
-    <div id="update_todoitem_dialog"/>
+    <div id="todoitem_dialog"/>
 
 </lift:surround>
