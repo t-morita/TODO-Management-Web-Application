@@ -22,10 +22,10 @@ class Boot {
         DB.defineConnectionManager(DefaultConnectionIdentifier, DBVendor)
 
         // Build SiteMap
-        val entries = Menu(Loc("list", List("list"), "List")) ::
+        val entries = Menu(Loc("list", List("list"), "List", List(Loc.Hidden))) ::
                 Menu(Loc("login", List("login"), "Login")) ::
-                Menu(Loc("upload", List("upload"), "Upload")) ::
-                Menu(Loc("error", List("error"), "Error")) ::
+                Menu(Loc("upload", List("upload"), "Upload", List(Loc.Hidden))) ::
+                Menu(Loc("error", List("error"), "Error", List(Loc.Hidden))) ::
                 Nil
         TableSorter.init
         LiftRules.setSiteMap(SiteMap(entries:_*))
