@@ -1,0 +1,14 @@
+<lift:TodoWebapp.updateAction form="POST">
+    <div id="todoitem_error_message"/>
+    <fieldset>
+        <label>項目名</label><br/>
+        <e:name/><br/>
+        <label>担当者</label><br/>
+        <e:personInCharge/><br/>
+        <label>期限</label><br/>
+        <e:year/> / <e:month/> / <e:day/><br/>
+        <label>完了</label><br/>
+        <e:finishedCheckBox/>完了した
+        <e:submit/>
+    </fieldset>
+</lift:TodoWebapp.updateAction>

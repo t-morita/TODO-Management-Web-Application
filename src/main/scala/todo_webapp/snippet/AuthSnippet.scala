@@ -200,19 +200,7 @@ class AuthSnippet {
         }
 
         def showAddUserDialog() : JsCmd = {
-            val addUserForm = <lift:AuthSnippet.addUserAction form="POST">
-                    <div id="add_user_error_message"/>
-                <fieldset>
-                    <label>ユーザ名</label><br/>
-                        <e:userName/><br/>
-                    <label>ユーザID</label><br/>
-                        <e:userId/><br/>
-                    <label>パスワード</label><br/>
-                        <e:password/><br/>
-                        <e:addUserButton/>
-                </fieldset>
-            </lift:AuthSnippet.addUserAction>
-
+            val addUserForm = LiftRules.loadResourceAsXml("/snippet/addUser.html").openOr(<p>load error</p>)
             val dialogId = "#add_user_dialog"
             JsCmds.SetHtml(dialogId, addUserForm) &
                     JsRaw(JE.JsFunc("openFormDialog", JE.Str(dialogId), JE.Str("ユーザ登録"), JE.Str("#add_user_button")).toJsCmd)

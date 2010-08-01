@@ -15,6 +15,9 @@ import net.liftweb.mapper.{Like, By}
 import java.util.{Date, Calendar}
 import java.text.SimpleDateFormat
 import net.liftweb.widgets.tablesorter.TableSorter
+import parsing.XhtmlParser
+import io.Source
+import java.io.File
 
 /**
  * Created by IntelliJ IDEA.
@@ -216,19 +219,7 @@ class TodoWebapp {
         val newItemId = S.attr("item_id").openOr("none")
         def openAddTodoItemDialog(): JsCmd = {
             S.set("item_id", newItemId)
-            val addTodoItemForm = <lift:TodoWebapp.addTodoItemAction form="POST">
-                    <div id="todoitem_error_message"/>
-                <fieldset>
-                    <label>項目名</label><br/>
-                        <e:name/><br/>
-                    <label>担当者</label><br/>
-                        <e:personInCharge/><br/>
-                    <label>期限</label><br/>
-                        <e:year/> / <e:month/> / <e:day/><br/>
-                    <e:addTodoItemButton/>
-                </fieldset>
-            </lift:TodoWebapp.addTodoItemAction>
-
+            val addTodoItemForm = LiftRules.loadResourceAsXml("/snippet/addItem.html").openOr(<p>load error</p>)
             val dialogId = "#todoitem_dialog"
             JsCmds.SetHtml(dialogId, addTodoItemForm) &
             JsRaw(JE.JsFunc("openFormDialog",JE.Str(dialogId), JE.Str("作業登録"), JE.Str("#add_todoitem_button")).toJsCmd)
@@ -305,21 +296,7 @@ class TodoWebapp {
         val updateItemId = S.attr("item_id").openOr("none")
         def openUpdateTodoItemDialog(): JsCmd = {
             S.set("item_id", updateItemId)
-            val updateTodoItemForm = <lift:TodoWebapp.updateAction form="POST">
-                <div id="todoitem_error_message"/>
-                <fieldset>
-                <label>項目名</label><br/>
-                    <e:name/><br/>
-                <label>担当者</label><br/>
-                    <e:personInCharge/><br/>
-                <label>期限</label><br/>
-                    <e:year/> / <e:month/> / <e:day/><br/>
-                <label>完了</label><br/>
-                    <e:finishedCheckBox/>完了した
-                <e:submit/>
-                </fieldset>
-            </lift:TodoWebapp.updateAction>
-
+            val updateTodoItemForm = LiftRules.loadResourceAsXml("/snippet/updateItem.html").openOr(<p>load error</p>)
             val dialogId = "#todoitem_dialog"
             JsCmds.SetHtml(dialogId, updateTodoItemForm) &
             JsRaw(JE.JsFunc("openFormDialog",JE.Str(dialogId), JE.Str("作業更新"), JE.Str("#update_todoitem_button")).toJsCmd)
