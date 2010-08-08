@@ -23,39 +23,17 @@ class AuthSnippet {
 
     object currentUser extends SessionVar[TodoUser](null)
 
-    /**
-     * 有効なユーザIDかどうかを判定します。
-     *
-     * @param name
-     * @return
-     */
-    def isValidUserID(name: String): Boolean = {
-        isAlphaOrDigit(name);
+    def isInvalidUserID(name: String): Boolean = {
+      name.exists(isInvalidChar)
     }
 
-    /**
-     * 有効なパスワードかどうかを判定します。
-     *
-     * @param password
-     * @return
-     */
-    def isValidPassword(password: String): Boolean = {
-        return isAlphaOrDigit(password);
+    def isInvalidPassword(password: String): Boolean = {
+      password.exists(isInvalidChar)
     }
 
-    /**
-     * 文字列が半角英数字から構成されているかどうかを判定します。
-     *
-     * @param str
-     * @return
-     */
-    def isAlphaOrDigit(str: String): Boolean = {
-        for (ch <- str) {
-            if (!(ch.isLetterOrDigit || ch == '_')) return false
-        }
-        return true
+    def isInvalidChar(x: Char): Boolean = {
+      !(x.isLetterOrDigit || x == '_')
     }
-
 
     def addUserAction(xhtml: NodeSeq):NodeSeq  = {
         var userName = ""
@@ -162,7 +140,7 @@ class AuthSnippet {
                 validPassword = false
                 showMessage(check_password_message, "パスワードが空です．") &
                         disableLoginButton("true")
-            } else if (!isValidPassword(password)) {
+            } else if (isInvalidPassword(password)) {
                 validPassword = false
                 showMessage(check_password_message, "パスワードには数字またはアルファベットを入力してください．") &
                         disableLoginButton("true")
@@ -180,7 +158,7 @@ class AuthSnippet {
                 validUserId = false
                 showMessage(check_user_id_message,"ユーザIDが空です．") &
                         disableLoginButton("true")
-            } else if (!isValidUserID(userId)) {
+            } else if (isInvalidUserID(userId)) {
                 validUserId = false
                 showMessage(check_user_id_message,"ユーザIDには数字またはアルファベットを入力してください．") &
                         disableLoginButton("true")
