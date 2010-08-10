@@ -35,6 +35,30 @@ class AuthSnippet {
       !(x.isLetterOrDigit || x == '_')
     }
 
+    def showMessageCmd(id: String, msg: String) = {
+      JsCmds.SetHtml({id}, <span>{msg}</span>)
+    }
+
+    def checkUserId(userId: String, id: String) = {
+      if (userId.isEmpty) {
+        showMessageCmd(id, "ユーザIDを入力してください．")
+      } else if (isInvalidUserID(userId)) {
+        showMessageCmd(id, "ユーザIDには数字またはアルファベットを入力してください．")
+      } else {
+        JsCmds.Noop
+      }
+    }
+
+    def checkPassword(password: String, id: String) = {
+      if (password.isEmpty) {
+        showMessageCmd(id, "パスワードを入力してください．")
+      } else if (isInvalidPassword(password)) {
+        showMessageCmd(id, "パスワードには数字またはアルファベットを入力してください．")
+      } else {
+        JsCmds.Noop
+      }
+    }
+
     def addUserAction(xhtml: NodeSeq):NodeSeq  = {
         var userName = ""
         var userId = ""
@@ -42,41 +66,33 @@ class AuthSnippet {
 
         def setUserName(un: String): JsCmd = {
             userName = un
-            if (userName == "") {
+            if (userName.isEmpty) {
                 JsCmds.SetHtml("add_user_error_message", <p>ユーザ名を入力してください．</p>)
             } else {
-                return null
+                JsCmds.Noop
             }
         }
 
         def setUserId(id: String): JsCmd = {
             userId = id
-            if (userId == "") {
-                JsCmds.SetHtml("add_user_error_message", <p>ユーザIDを入力してください．</p>)
-            } else {
-                return null
-            }
+            checkUserId(userId, "add_user_error_message")
         }
 
         def setPassword(p: String): JsCmd = {
             password = p
-            if (password == "") {
-                JsCmds.SetHtml("add_user_error_message", <p>パスワードを入力してください．</p>)
-            } else {
-                return null
-            }
+            checkPassword(password, "add_user_error_message")
         }
 
         val textBoxClass = "class" -> "text ui-widget-content ui-corner-all"
 
        def addUser(): JsCmd = {
-           if (userName != "" && userId != "" && password != "") {
+           if (!(userName.isEmpty || userId.isEmpty || password.isEmpty)) {
                TodoUser.getUser(userId) match {
                    case Some(user) =>
                        JsCmds.SetHtml("add_user_error_message", <p>別のユーザIDにしてください．</p>)
                    case _ =>
                        TodoUser.create.name(userName).userId(userId).password(password).save
-                       return null
+                       JsCmds.Noop
                }
            } else {
                JsCmds.SetHtml("add_user_error_message", <p>ユーザ名またはユーザIDまたはパスワードが適切に入力されていません．</p>)
@@ -110,8 +126,6 @@ class AuthSnippet {
     def loginAction(xhtml: NodeSeq):  NodeSeq = {
         var userId = ""
         var password = ""
-        var validPassword = false
-        var validUserId = false
 
         def auth(): Any = {
             TodoUser.getUser(userId, password) match {
@@ -129,52 +143,33 @@ class AuthSnippet {
             SetElemById("login", JsRaw(t), "disabled")
         }
 
-        def showMessage(id: String, msg: String) = {
-            JsCmds.SetHtml({id}, <span>{msg}</span>)
+
+        def setPassword(pass: String): JsCmd = {
+          password = pass
+          val checkPasswordMsg = "check_password_message"
+          val cmd = checkPassword(password, checkPasswordMsg) 
+          cmd match {
+            case JsCmds.Noop => checkUserIdandPassword(checkPasswordMsg, "パスワードは正常．")
+            case _ => cmd & disableLoginButton("true")
+          }
         }
 
-        def checkPassword(pass: String): JsCmd = {
-            password = pass
-            val check_password_message = "check_password_msg"
-            if (password.length == 0) {
-                validPassword = false
-                showMessage(check_password_message, "パスワードが空です．") &
-                        disableLoginButton("true")
-            } else if (isInvalidPassword(password)) {
-                validPassword = false
-                showMessage(check_password_message, "パスワードには数字またはアルファベットを入力してください．") &
-                        disableLoginButton("true")
-            } else {
-                validPassword = true
-                var msg = showMessage(check_password_message, "パスワード入力は正常．")
-                checkUserIdandPassword(msg)
-            }
+        def setUserId(id: String): JsCmd = {
+          userId = id
+          val checkUserIdMsg = "check_user_id_message"
+          val cmd = checkUserId(userId, checkUserIdMsg)
+           cmd match {
+            case JsCmds.Noop => checkUserIdandPassword(checkUserIdMsg, "ユーザIDは正常．")
+            case _ => cmd & disableLoginButton("true")
+          }
         }
 
-        def checkUserId(id: String): JsCmd = {
-            userId = id
-            val check_user_id_message = "check_user_id_msg"
-            if (userId.length == 0) {
-                validUserId = false
-                showMessage(check_user_id_message,"ユーザIDが空です．") &
-                        disableLoginButton("true")
-            } else if (isInvalidUserID(userId)) {
-                validUserId = false
-                showMessage(check_user_id_message,"ユーザIDには数字またはアルファベットを入力してください．") &
-                        disableLoginButton("true")
-            } else {
-                validUserId = true
-                var msg = showMessage(check_user_id_message, "ユーザIDは正常．")
-                checkUserIdandPassword(msg)
-            }
-        }
-
-        def checkUserIdandPassword(msg: JsCmd) : JsCmd = {
-            if (validUserId && validPassword) {
-                msg & disableLoginButton("false")
-            } else {
-                msg
-            }
+        def checkUserIdandPassword(id: String, msg: String) : JsCmd = {
+          var cmd = showMessageCmd(id, msg)
+            TodoUser.getUser(userId, password) match {
+            case Some(user)  => cmd & disableLoginButton("false")
+            case None => cmd
+          }
         }
 
         def showAddUserDialog() : JsCmd = {
@@ -185,8 +180,8 @@ class AuthSnippet {
         }
 
         bind("e", xhtml,
-            "userId" --> SHtml.ajaxText("", checkUserId _),
-            "password" --> SHtml.ajaxText("", checkPassword _, "type" -> "password"),
+            "userId" --> SHtml.ajaxText("", setUserId _),
+            "password" --> SHtml.ajaxText("", setPassword _, "type" -> "password"),
             "login" --> SHtml.submit("ログイン", auth, "id" -> "login", "disabled" -> "true"),
             "addUser" --> SHtml.ajaxButton("ユーザ登録", showAddUserDialog _ ))
     }
