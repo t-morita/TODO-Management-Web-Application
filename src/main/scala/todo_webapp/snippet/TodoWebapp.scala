@@ -36,55 +36,67 @@ class TodoWebapp {
         <span>{AuthSnippet.currentUser.is.name}</span>
     }
 
+    def getCSS(item: TodoItem, user: TodoUser) = {
+      if (item.finishedDate != null)  {
+        "tbl_sty1"
+      } else if (AuthSnippet.currentUser.is == user) {
+        if (item.deadline.getTime >= Calendar.getInstance().getTimeInMillis) {
+          "tbl_sty2"
+        } else {
+          "tbl_sty3"
+        }
+      } else if (item.deadline.getTime < Calendar.getInstance().getTimeInMillis) {
+        "tbl_sty4"
+      } else {
+        "tbl_sty5"
+      }
+    }
+
+    val sdf1 = new SimpleDateFormat("yyyy年MM月dd日");
+
+    def getTodoItemSnippet(item: TodoItem) = {
+      val itemId = item.id.toString
+      var finished = "未"
+      var isFinished = "false"
+      val deadline: Date = item.deadline
+      val user = TodoUser.getUserById(item.userId).get
+      if (item.finishedDate != null)  {
+        val finishedDate: Date = item.finishedDate
+        finished = sdf1.format(finishedDate)
+        isFinished = "true"
+      } 
+      val css = getCSS(item, user)
+      <tr id={"itemId"+itemId}>
+        <td class={css}>{item.name}</td>
+        <td class={css}>{user.name}</td>
+        <td class={css}>{sdf1.format(deadline)}</td>
+        <td class={css}>{finished}</td>
+        <td class={css}>
+          <lift:TodoWebapp.toggleFinishedAction form="POST" item_id={itemId} isFinished={isFinished}>
+            <e:isFinished/>
+          </lift:TodoWebapp.toggleFinishedAction>
+        </td>
+        <td class={css}>
+          <lift:TodoWebapp.showUpdateTodoItemDialogAction form="POST" item_id={itemId}>
+            <e:editTodo/>
+          </lift:TodoWebapp.showUpdateTodoItemDialogAction>
+        </td>
+        <td class={css}>
+          <lift:TodoWebapp.deleteAction form="POST" item_id={itemId} >
+            <e:deleteItem/>
+            <e:confirmDeleteItem/>
+          </lift:TodoWebapp.deleteAction>
+        </td>
+      </tr>
+    }
+    
     def getItemTable(itemList: List[TodoItem]): NodeSeq = {
-        val sdf1 = new SimpleDateFormat("yyyy年MM月dd日");
         var itemTable = new Queue[Node]
         if (itemList.size == 0) {
             return <p>作業項目はありません。</p>
         }
         for (item <- itemList) {
-            var css = ""
-            val itemId = item.id.toString
-            var finished = "未"
-            var isFinished = "false"
-            val deadline: Date = item.deadline
-            val user = TodoUser.getUserById(item.userId).get
-            if (item.finishedDate != null)  {
-                css = "tbl_sty1"
-                val finishedDate: Date = item.finishedDate
-                finished = sdf1.format(finishedDate)
-                isFinished = "true"
-            } else  if (AuthSnippet.currentUser.is == user && item.deadline.getTime >= Calendar.getInstance().getTimeInMillis) {
-                css = "tbl_sty2"
-            } else if (AuthSnippet.currentUser.is == user && item.deadline.getTime < Calendar.getInstance().getTimeInMillis) {
-                css = "tbl_sty3"
-            } else if (item.deadline.getTime < Calendar.getInstance().getTimeInMillis) {
-                css = "tbl_sty4"
-            } else {
-                css = "tbl_sty5"
-            }
-            itemTable += <tr id={"itemId"+itemId}>
-                <td class={css}>{item.name}</td>
-                <td class={css}>{user.name}</td>
-                <td class={css}>{sdf1.format(deadline)}</td>
-                <td class={css}>{finished}</td>
-                <td class={css}>
-                    <lift:TodoWebapp.toggleFinishedAction form="POST" item_id={itemId} isFinished={isFinished}>
-                            <e:isFinished/>
-                    </lift:TodoWebapp.toggleFinishedAction>
-                </td>
-                <td class={css}>
-                    <lift:TodoWebapp.showUpdateTodoItemDialogAction form="POST" item_id={itemId}>
-                            <e:editTodo/>
-                    </lift:TodoWebapp.showUpdateTodoItemDialogAction>
-                </td>
-                <td class={css}>
-                    <lift:TodoWebapp.deleteAction form="POST" item_id={itemId} >
-                            <e:deleteItem/>
-                            <e:confirmDeleteItem/>
-                    </lift:TodoWebapp.deleteAction>
-                </td>
-            </tr>
+            itemTable += getTodoItemSnippet(item)
         }
         itemTable
     }
@@ -96,7 +108,6 @@ class TodoWebapp {
     def list(): NodeSeq = {
         getItemTable(TodoItem.getItemList)
     }
-
 
     def errorAction(xhtml: NodeSeq):  NodeSeq = {
 
@@ -144,7 +155,7 @@ class TodoWebapp {
 
         def setSelectedUser(userId: String): JsCmd = {
             selectedUserId = userId.toLong
-            return null
+            JsCmds.Noop
         }
 
         def getFinishedDate(): Date = {
@@ -159,7 +170,8 @@ class TodoWebapp {
             getDate(year, month, day) match {
                 case Some(date) =>
                     TodoItem.updateItem(id, name, selectedUserId, date, getFinishedDate)
-                    JsCmds.SetHtml("todolist", getItemTable(TodoItem.getItemList)) &
+                    val item = TodoItem.getItem(id).get
+                    JsCmds.SetHtml("itemId"+id, getTodoItemSnippet(item).child) &
                             JsRaw(JE.JsFunc("updateTodoListTable").toJsCmd)
                 case None =>
                     val dialogId = "#todoitem_dialog"
@@ -171,12 +183,12 @@ class TodoWebapp {
 
         def setIsFinished(t: Boolean): JsCmd = {
             isFinished = t
-            return null
+            JsCmds.Noop
         }
 
        def setName(n: String): JsCmd = {
           name = n
-           return null
+          JsCmds.Noop
        }
 
         def setYear(y: String): JsCmd = {
@@ -254,12 +266,12 @@ class TodoWebapp {
 
         def setSelectedUser(userId: String): JsCmd = {
             selectedUserId = userId
-            return null
+            JsCmds.Noop
         }
 
        def setName(n: String): JsCmd = {
            name = n
-           return null
+           JsCmds.Noop
        }
 
        def setYear(y: String): JsCmd = {
@@ -313,9 +325,8 @@ class TodoWebapp {
 
         def toggleFinished(): JsCmd = {
             TodoItem.updateItem(itemId.toLong, getFinishedDate())
-            val keyword = S.get("last_search_keyword").openOr("")
-            val itemList: List[TodoItem] = TodoItem.getSearchItemList(keyword)
-            JsCmds.SetHtml("todolist", getItemTable(itemList)) &
+            val item = TodoItem.getItem(itemId.toLong).get
+            JsCmds.SetHtml("itemId" + itemId, getTodoItemSnippet(item).child) &
                     JsRaw(JE.JsFunc("updateTodoListTable").toJsCmd)
         }
 
@@ -342,7 +353,7 @@ class TodoWebapp {
 
        def deleteTodoItem() : JsCmd = {
            delItem.delete_!
-           return null;
+           JsCmds.Noop
        }
 
         def confirmDeleteTodoItem(): JsCmd = {
@@ -365,7 +376,7 @@ class TodoWebapp {
 
         def setKeyword(kw: String): JsCmd  = {
             keyword = kw
-            return null
+            JsCmds.Noop
         }
 
         def searchTodoItem():JsCmd  = {
